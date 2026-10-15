@@ -6,6 +6,8 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-12345')
 
     DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///diabetes.db')
+
+    # تحويل الرابط من postgres:// لـ postgresql:// (متوافق مع SQLAlchemy)
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
