@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}إنشاء حساب{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center auth-wrapper">
+    <div class="col-md-6 col-lg-5">
+        <div class="card auth-card shadow-lg border-0">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="auth-icon">✨</div>
+                    <h2 class="fw-bold mt-3">إنشاء حساب جديد</h2>
+                    <p class="text-muted">ابدأ رحلتك في متابعة السكر</p>
+                </div>
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.username.label(class="form-label fw-semibold") }}
+                        {{ form.username(class="form-control form-control-lg", placeholder="اسمك") }}
+                        {% for e in form.username.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label fw-semibold") }}
+                        {{ form.email(class="form-control form-control-lg", placeholder="you@example.com") }}
+                        {% for e in form.email.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label fw-semibold") }}
+                        {{ form.password(class="form-control form-control-lg", placeholder="6 أحرف على الأقل") }}
+                        {% for e in form.password.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-4">
+                        {{ form.confirm_password.label(class="form-label fw-semibold") }}
+                        {{ form.confirm_password(class="form-control form-control-lg", placeholder="أعد كتابة كلمة المرور") }}
+                        {% for e in form.confirm_password.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                    </div>
+                    {{ form.submit(class="btn btn-success btn-lg w-100 fw-bold") }}
+                </form>
+
+                <hr class="my-4">
+                <p class="text-center mb-0">
+                    لديك حساب بالفعل؟
+                    <a href="{{ url_for('auth.login') }}" class="fw-bold text-decoration-none">سجل الدخول</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

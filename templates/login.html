@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}تسجيل الدخول{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center auth-wrapper">
+    <div class="col-md-6 col-lg-5">
+        <div class="card auth-card shadow-lg border-0">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="auth-icon">🩸</div>
+                    <h2 class="fw-bold mt-3">مرحبًا بك مجددًا</h2>
+                    <p class="text-muted">سجل دخولك لمتابعة قياساتك</p>
+                </div>
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label fw-semibold") }}
+                        {{ form.email(class="form-control form-control-lg", placeholder="you@example.com") }}
+                        {% for e in form.email.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label fw-semibold") }}
+                        {{ form.password(class="form-control form-control-lg", placeholder="••••••••") }}
+                        {% for e in form.password.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+                    </div>
+                    <div class="form-check mb-4">
+                        {{ form.remember(class="form-check-input") }}
+                        {{ form.remember.label(class="form-check-label") }}
+                    </div>
+                    {{ form.submit(class="btn btn-primary btn-lg w-100 fw-bold") }}
+                </form>
+
+                <hr class="my-4">
+                <p class="text-center mb-0">
+                    ليس لديك حساب؟
+                    <a href="{{ url_for('auth.register') }}" class="fw-bold text-decoration-none">أنشئ حسابًا الآن</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

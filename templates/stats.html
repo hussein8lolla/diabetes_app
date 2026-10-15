@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}الإحصائيات{% endblock %}
+
+{% block content %}
+<h2 class="fw-bold mb-4">📈 الإحصائيات التفصيلية</h2>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small mb-2">متوسط اليوم</div>
+                <div class="display-5 fw-bold text-primary">{{ avg_today }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small mb-2">متوسط الأسبوع</div>
+                <div class="display-5 fw-bold text-info">{{ avg_week }}</div>
+                <div class="text-muted small mt-1">الانحراف المعياري: {{ std_week }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="text-muted small mb-2">متوسط الشهر</div>
+                <div class="display-5 fw-bold text-success">{{ avg_month }}</div>
+                <div class="text-muted small mt-1">الانحراف المعياري: {{ std_month }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="fw-bold mb-3">📉 اتجاه السكر خلال 30 يومًا</h5>
+        {% if chart_values %}
+            <canvas id="sugarChart" height="100"></canvas>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <div class="display-4">📊</div>
+                <p>لا توجد بيانات كافية للرسم</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="fw-bold mb-0">⏰ المتوسط حسب وقت القياس (آخر 30 يوم)</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>وقت القياس</th><th>المتوسط</th><th>عدد القراءات</th><th>الحالة</th></tr>
+                </thead>
+                <tbody>
+                    {% for stat in time_stats %}
+                    <tr>
+                        <td class="fw-semibold">{{ stat.name_ar }}</td>
+                        <td>
+                            {% if stat.count > 0 %}
+                                <span class="badge fs-6
+                                    {% if stat.avg < 80 %}bg-danger-subtle text-danger
+                                    {% elif stat.avg > 180 %}bg-warning-subtle text-warning
+                                    {% else %}bg-success-subtle text-success{% endif %}">
+                                    {{ stat.avg }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ stat.count }}</td>
+                        <td>
+                            {% if stat.count == 0 %}<span class="text-muted small">لا توجد</span>
+                            {% elif stat.avg < 80 %}<span class="text-danger small">⚠️ منخفض</span>
+                            {% elif stat.avg > 180 %}<span class="text-warning small">⚠️ مرتفع</span>
+                            {% else %}<span class="text-success small">✅ طبيعي</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-4">
+    <a href="{{ url_for('readings.export_pdf') }}" class="btn btn-outline-danger">
+        <i class="bi bi-file-earmark-pdf"></i> تحميل التقرير PDF
+    </a>
+    <a href="{{ url_for('readings.export_excel') }}" class="btn btn-outline-success">
+        <i class="bi bi-file-earmark-excel"></i> تحميل التقرير Excel
+    </a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if chart_values %}
+<script>
+    const ctx = document.getElementById('sugarChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels | tojson }},
+            datasets: [{
+                label: 'قراءة السكر',
+                data: {{ chart_values | tojson }},
+                borderColor: '#1a73e8',
+                backgroundColor: 'rgba(26, 115, 232, 0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: {{ chart_values | tojson }}.map(v =>
+                    v < 80 ? '#ea4335' : v > 180 ? '#fbbc04' : '#34a853'),
+                pointRadius: 5,
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { suggestedMin: 40, suggestedMax: 260 } }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

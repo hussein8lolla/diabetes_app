@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}الرئيسية{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1">📊 لوحة التحكم</h2>
+        <p class="text-muted mb-0">نظرة سريعة على آخر 30 يومًا</p>
+    </div>
+    <a href="{{ url_for('readings.add') }}" class="btn btn-primary btn-lg">
+        <i class="bi bi-plus-circle"></i> إضافة قياس جديد
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="stat-icon bg-primary-subtle text-primary"><i class="bi bi-graph-up-arrow"></i></div>
+                <div class="stat-value">{{ avg }}</div>
+                <div class="stat-label">المتوسط العام</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-check-circle"></i></div>
+                <div class="stat-value">{{ normal_count }}</div>
+                <div class="stat-label">قراءات طبيعية</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="stat-icon bg-warning-subtle text-warning"><i class="bi bi-exclamation-triangle"></i></div>
+                <div class="stat-value">{{ high_count }}</div>
+                <div class="stat-label">قراءات مرتفعة</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="stat-icon bg-danger-subtle text-danger"><i class="bi bi-arrow-down-circle"></i></div>
+                <div class="stat-value">{{ low_count }}</div>
+                <div class="stat-label">قراءات منخفضة</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
+        <h5 class="mb-0 fw-bold">📋 آخر القراءات</h5>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('readings.export_excel') }}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </a>
+            <a href="{{ url_for('readings.export_pdf') }}" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-file-earmark-pdf"></i> PDF
+            </a>
+            {% if readings %}
+            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#clearModal">
+                <i class="bi bi-trash"></i> مسح الكل
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if readings %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>التاريخ</th><th>الوقت</th><th>القيمة</th>
+                        <th>وقت القياس</th><th>الدواء</th><th>الجرعة</th>
+                        <th class="text-center">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in readings %}
+                    <tr>
+                        <td>{{ r.date }}</td>
+                        <td>{{ r.time }}</td>
+                        <td>
+                            {% if r.value < 80 %}
+                                <span class="badge bg-danger-subtle text-danger fs-6">{{ r.value }}</span>
+                            {% elif r.value > 180 %}
+                                <span class="badge bg-warning-subtle text-warning fs-6">{{ r.value }}</span>
+                            {% else %}
+                                <span class="badge bg-success-subtle text-success fs-6">{{ r.value }}</span>
+                            {% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ r.measurement_time or '-' }}</small></td>
+                        <td>{{ r.medication_name or '-' }}</td>
+                        <td>{{ r.medication_dose or 0 }}</td>
+                        <td class="text-center">
+                            <a href="{{ url_for('readings.edit', reading_id=r.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form action="{{ url_for('readings.delete', reading_id=r.id) }}" method="POST" class="d-inline"
+                                  onsubmit="return confirm('هل أنت متأكد من حذف هذا القياس؟');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="display-1">📭</div>
+            <h5 class="text-muted mt-3">لا توجد قراءات مسجلة بعد</h5>
+            <a href="{{ url_for('readings.add') }}" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-circle"></i> أضف أول قياس
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if readings %}
+<div class="modal fade" id="clearModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle"></i> تأكيد المسح</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>هل أنت متأكد أنك تريد حذف <strong>جميع</strong> قياساتك؟ لا يمكن التراجع.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <form action="{{ url_for('readings.clear_all') }}" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">نعم، امسح الكل</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
