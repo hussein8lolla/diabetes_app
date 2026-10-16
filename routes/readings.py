@@ -103,11 +103,20 @@ def stats():
     std_month = round(statistics.stdev(month_vals), 1) if len(month_vals) > 1 else 0
 
     time_labels = [
-        ('Before Breakfast', 'قبل الفطار'), ('After Breakfast', 'بعد الفطار'),
-        ('Before Lunch', 'قبل الغداء'), ('After Lunch', 'بعد الغداء'),
-        ('Before Dinner', 'قبل العشاء'), ('After Dinner', 'بعد العشاء'),
-        ('Before Exercise', 'قبل التمرين'), ('After Exercise', 'بعد التمرين'),
-        ('Before Sleep', 'قبل النوم'), ('Morning', 'الصبح'),
+        ('Morning', 'الصبح'),
+        ('Noon', 'نص اليوم'),
+        ('Afternoon', 'بعد الظهر'),
+        ('Evening', 'بعد العصر'),
+        ('Night', 'بليل'),
+        ('Before Breakfast', 'قبل الفطار'),
+        ('After Breakfast', 'بعد الفطار'),
+        ('Before Lunch', 'قبل الغداء'),
+        ('After Lunch', 'بعد الغداء'),
+        ('Before Dinner', 'قبل العشاء'),
+        ('After Dinner', 'بعد العشاء'),
+        ('Before Exercise', 'قبل التمرين'),
+        ('After Exercise', 'بعد التمرين'),
+        ('Before Sleep', 'قبل النوم'),
     ]
     time_stats = []
     for en, ar in time_labels:

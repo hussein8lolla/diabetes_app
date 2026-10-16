@@ -33,6 +33,11 @@ class ReadingForm(FlaskForm):
     value = IntegerField('قراءة السكر',
         validators=[DataRequired(), NumberRange(min=20, max=600, message='القيمة بين 20 و 600')])
     measurement_time = SelectField('وقت القياس', choices=[
+        ('Morning', 'الصبح'),
+        ('Noon', 'نص اليوم'),
+        ('Afternoon', 'بعد الظهر'),
+        ('Evening', 'بعد العصر'),
+        ('Night', 'بليل'),
         ('Before Breakfast', 'قبل الفطار'),
         ('After Breakfast', 'بعد الفطار'),
         ('Before Lunch', 'قبل الغداء'),
@@ -42,7 +47,6 @@ class ReadingForm(FlaskForm):
         ('Before Exercise', 'قبل التمرين'),
         ('After Exercise', 'بعد التمرين'),
         ('Before Sleep', 'قبل النوم'),
-        ('Morning', 'الصبح'),
     ])
     medication_name = StringField('اسم الدواء', validators=[Optional(), Length(max=100)])
     medication_dose = FloatField('الجرعة', validators=[Optional(), NumberRange(min=0, max=200)])
