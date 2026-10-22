@@ -36,7 +36,6 @@ class ReadingForm(FlaskForm):
         ('Morning', 'الصبح'),
         ('Noon', 'نص اليوم'),
         ('Afternoon', 'بعد الظهر'),
-        ('Evening', 'بالليل'),
         ('Night', 'بليل'),
         ('Before Breakfast', 'قبل الفطار'),
         ('After Breakfast (2h)', 'بعد الفطار بساعتين'),
