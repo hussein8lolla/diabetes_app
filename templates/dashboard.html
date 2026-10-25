@@ -71,11 +71,12 @@
     <div class="card-body p-0">
         {% if readings %}
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 text-nowrap">
                 <thead class="table-light">
                     <tr>
                         <th>التاريخ</th><th>الوقت</th><th>القيمة</th>
                         <th>وقت القياس</th><th>الدواء</th><th>الجرعة</th>
+                        <th>الكربوهيدرات</th> <!-- ✅ تمت الإضافة -->
                         <th class="text-center">إجراءات</th>
                     </tr>
                 </thead>
@@ -96,6 +97,7 @@
                         <td><small class="text-muted">{{ r.measurement_time or '-' }}</small></td>
                         <td>{{ r.medication_name or '-' }}</td>
                         <td>{{ r.medication_dose or 0 }}</td>
+                        <td>{{ r.carbs or 0 }} جم</td> <!-- ✅ تمت الإضافة -->
                         <td class="text-center">
                             <a href="{{ url_for('readings.edit', reading_id=r.id) }}" class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-pencil"></i>

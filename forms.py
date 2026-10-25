@@ -36,6 +36,7 @@ class ReadingForm(FlaskForm):
         ('Morning', 'الصبح'),
         ('Noon', 'نص اليوم'),
         ('Afternoon', 'بعد الظهر'),
+        ('Evening', 'بالليل'),
         ('Night', 'بليل'),
         ('Before Breakfast', 'قبل الفطار'),
         ('After Breakfast (2h)', 'بعد الفطار بساعتين'),
@@ -49,5 +50,6 @@ class ReadingForm(FlaskForm):
     ])
     medication_name = StringField('اسم الدواء', validators=[Optional(), Length(max=100)])
     medication_dose = FloatField('الجرعة', validators=[Optional(), NumberRange(min=0, max=200)])
+    carbs = IntegerField('الكربوهيدرات (بالجرام)', validators=[Optional(), NumberRange(min=0, max=500)]) # ✅ تمت الإضافة
     note = TextAreaField('ملاحظات', validators=[Optional(), Length(max=500)])
     submit = SubmitField('حفظ القياس')

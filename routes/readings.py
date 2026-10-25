@@ -29,6 +29,7 @@ def add():
             measurement_time=form.measurement_time.data,
             medication_name=form.medication_name.data or '',
             medication_dose=form.medication_dose.data or 0.0,
+            carbs=form.carbs.data or 0,  # ✅ تمت الإضافة
             note=form.note.data or ''
         )
         db.session.add(reading)
@@ -56,6 +57,7 @@ def edit(reading_id):
         reading.measurement_time = form.measurement_time.data
         reading.medication_name = form.medication_name.data or ''
         reading.medication_dose = form.medication_dose.data or 0.0
+        reading.carbs = form.carbs.data or 0  # ✅ تمت الإضافة
         reading.note = form.note.data or ''
         db.session.commit()
         flash('✅ تم تحديث القياس!', 'success')
@@ -88,8 +90,8 @@ def clear_all():
 def stats():
     def get_vals(days):
         start = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
-        rows = Reading.query.filter_by(user_id=current_user.id)\
-                            .filter(Reading.date >= start).all()
+        rows = Reading.query.filter_by(user_id=current_user.id) \
+            .filter(Reading.date >= start).all()
         return [r.value for r in rows]
 
     today_vals = get_vals(0)
@@ -102,44 +104,72 @@ def stats():
     std_week = round(statistics.stdev(week_vals), 1) if len(week_vals) > 1 else 0
     std_month = round(statistics.stdev(month_vals), 1) if len(month_vals) > 1 else 0
 
+    # ================= حساب TIR و eA1c =================
+    total_readings = len(month_vals)
+    if total_readings > 0:
+        in_range = sum(1 for v in month_vals if 80 <= v <= 180)
+        high = sum(1 for v in month_vals if v > 180)
+        low = sum(1 for v in month_vals if v < 80)
+
+        tir_percentage = round((in_range / total_readings) * 100)
+        high_percentage = round((high / total_readings) * 100)
+        low_percentage = round((low / total_readings) * 100)
+
+        # حساب eA1c: (المتوسط + 46.7) / 28.7
+        ea1c = round((avg_month + 46.7) / 28.7, 1)
+
+        # تحديد حالة eA1c
+        if ea1c < 5.7:
+            a1c_status = "success"
+            a1c_text = "طبيعي"
+        elif ea1c < 6.5:
+            a1c_status = "warning"
+            a1c_text = "متوسط (ما قبل السكري)"
+        else:
+            a1c_status = "danger"
+            a1c_text = "مرتفع"
+    else:
+        tir_percentage = high_percentage = low_percentage = 0
+        ea1c = 0
+        a1c_status = "secondary"
+        a1c_text = "لا توجد قراءات كافية"
+
+    # إحصائيات وقت القياس
     time_labels = [
-        ('Morning', 'الصبح'),
-        ('Noon', 'نص اليوم'),
-        ('Afternoon', 'بعد الظهر'),
-        ('Night', 'بليل'),
-        ('Before Breakfast', 'قبل الفطار'),
-        ('After Breakfast (2h)', 'بعد الفطار بساعتين'),
-        ('Before Lunch', 'قبل الغداء'),
-        ('After Lunch (2h)', 'بعد الغداء بساعتين'),
-        ('Before Dinner', 'قبل العشاء'),
-        ('After Dinner (2h)', 'بعد العشاء بساعتين'),
-        ('Before Exercise', 'قبل التمرين'),
-        ('After Exercise', 'بعد التمرين'),
+        ('Morning', 'الصبح'), ('Noon', 'نص اليوم'), ('Afternoon', 'بعد الظهر'),
+        ('Evening', 'بالليل'), ('Night', 'بليل'),
+        ('Before Breakfast', 'قبل الفطار'), ('After Breakfast (2h)', 'بعد الفطار بساعتين'),
+        ('Before Lunch', 'قبل الغداء'), ('After Lunch (2h)', 'بعد الغداء بساعتين'),
+        ('Before Dinner', 'قبل العشاء'), ('After Dinner (2h)', 'بعد العشاء بساعتين'),
+        ('Before Exercise', 'قبل التمرين'), ('After Exercise', 'بعد التمرين'),
         ('Before Sleep', 'قبل النوم'),
     ]
     time_stats = []
     for en, ar in time_labels:
         start = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
-        rows = Reading.query.filter_by(user_id=current_user.id, measurement_time=en)\
-                            .filter(Reading.date >= start).all()
+        rows = Reading.query.filter_by(user_id=current_user.id, measurement_time=en) \
+            .filter(Reading.date >= start).all()
         values = [r.value for r in rows]
         avg = round(statistics.mean(values), 1) if values else 0
         time_stats.append({'name_ar': ar, 'avg': avg, 'count': len(values)})
 
     chart_start = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
-    chart_rows = Reading.query.filter_by(user_id=current_user.id)\
-                              .filter(Reading.date >= chart_start)\
-                              .order_by(Reading.date.asc(), Reading.time.asc()).all()
+    chart_rows = Reading.query.filter_by(user_id=current_user.id) \
+        .filter(Reading.date >= chart_start) \
+        .order_by(Reading.date.asc(), Reading.time.asc()).all()
     chart_labels = [f"{r.date} {r.time}" for r in chart_rows]
     chart_values = [r.value for r in chart_rows]
 
     return render_template('stats.html',
-        avg_today=avg_today, avg_week=avg_week, avg_month=avg_month,
-        std_week=std_week, std_month=std_month, time_stats=time_stats,
-        chart_labels=chart_labels, chart_values=chart_values)
+                           avg_today=avg_today, avg_week=avg_week, avg_month=avg_month,
+                           std_week=std_week, std_month=std_month, time_stats=time_stats,
+                           chart_labels=chart_labels, chart_values=chart_values,
+                           tir_percentage=tir_percentage, high_percentage=high_percentage,
+                           low_percentage=low_percentage,
+                           ea1c=ea1c, a1c_status=a1c_status, a1c_text=a1c_text, total_readings=total_readings
+                           )
 
 
-# ============ تصدير Excel ============
 @readings_bp.route('/export/excel')
 @login_required
 def export_excel():
@@ -150,7 +180,7 @@ def export_excel():
     ws = wb.active
     ws.title = "Diabetes Readings"
 
-    headers = ["Date", "Time", "Value", "Measurement Time", "Medication", "Dose", "Notes"]
+    headers = ["Date", "Time", "Value", "Measurement Time", "Medication", "Dose", "Carbs (g)", "Notes"]  # ✅ تمت الإضافة
     ws.append(headers)
 
     header_font = Font(bold=True, color="FFFFFF")
@@ -161,11 +191,11 @@ def export_excel():
         cell.fill = header_fill
         cell.alignment = Alignment(horizontal="center")
 
-    readings = Reading.query.filter_by(user_id=current_user.id)\
-                            .order_by(Reading.date.desc(), Reading.time.desc()).all()
+    readings = Reading.query.filter_by(user_id=current_user.id) \
+        .order_by(Reading.date.desc(), Reading.time.desc()).all()
     for r in readings:
         ws.append([r.date, r.time, r.value, r.measurement_time,
-                   r.medication_name, r.medication_dose, r.note])
+                   r.medication_name, r.medication_dose, r.carbs, r.note])  # ✅ تمت الإضافة
 
     for col in ws.columns:
         max_len = max((len(str(cell.value)) if cell.value else 0) for cell in col)
@@ -177,11 +207,10 @@ def export_excel():
 
     filename = f"diabetes_report_{current_user.username}_{datetime.now().strftime('%Y%m%d')}.xlsx"
     return send_file(output,
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        as_attachment=True, download_name=filename)
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                     as_attachment=True, download_name=filename)
 
 
-# ============ تصدير PDF ============
 @readings_bp.route('/export/pdf')
 @login_required
 def export_pdf():
@@ -198,10 +227,10 @@ def export_pdf():
 
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle('TitleStyle', parent=styles['Title'],
-        fontSize=18, textColor=colors.HexColor('#1a73e8'),
-        alignment=1, spaceAfter=20)
+                                 fontSize=18, textColor=colors.HexColor('#1a73e8'),
+                                 alignment=1, spaceAfter=20)
     subtitle_style = ParagraphStyle('SubtitleStyle', parent=styles['Heading2'],
-        fontSize=13, textColor=colors.HexColor('#333'), spaceAfter=10)
+                                    fontSize=13, textColor=colors.HexColor('#333'), spaceAfter=10)
 
     elements = []
     elements.append(Paragraph("Diabetes Readings Report", title_style))
@@ -212,8 +241,8 @@ def export_pdf():
 
     def get_vals(days):
         start = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
-        rows = Reading.query.filter_by(user_id=current_user.id)\
-                            .filter(Reading.date >= start).all()
+        rows = Reading.query.filter_by(user_id=current_user.id) \
+            .filter(Reading.date >= start).all()
         return [r.value for r in rows]
 
     today_vals = get_vals(0)
@@ -248,18 +277,21 @@ def export_pdf():
     elements.append(Spacer(1, 20))
 
     elements.append(Paragraph("Recent Readings:", subtitle_style))
-    readings = Reading.query.filter_by(user_id=current_user.id)\
-                            .order_by(Reading.date.desc(), Reading.time.desc())\
-                            .limit(50).all()
+    readings = Reading.query.filter_by(user_id=current_user.id) \
+        .order_by(Reading.date.desc(), Reading.time.desc()) \
+        .limit(50).all()
 
     if readings:
-        table_data = [["Date", "Time", "Value", "Meas. Time", "Medication", "Dose"]]
+        table_data = [["Date", "Time", "Value", "Meas. Time", "Medication", "Dose", "Carbs(g)"]]  # ✅ تمت الإضافة
         for r in readings:
             table_data.append([r.date, r.time, str(r.value),
-                r.measurement_time or '-', r.medication_name or '-',
-                str(r.medication_dose or 0)])
+                               r.measurement_time or '-', r.medication_name or '-',
+                               str(r.medication_dose or 0), str(r.carbs or 0)])  # ✅ تمت الإضافة
+
+        # تعديل عرض الأعمدة عشان تاخد الـ 7 أعمدة
         readings_table = Table(table_data,
-            colWidths=[1*inch, 0.8*inch, 0.7*inch, 1.6*inch, 1.2*inch, 0.7*inch])
+                               colWidths=[0.8 * inch, 0.6 * inch, 0.6 * inch, 1.4 * inch, 1.0 * inch, 0.6 * inch,
+                                          0.6 * inch])
         readings_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a73e8')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),

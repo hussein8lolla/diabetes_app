@@ -31,14 +31,20 @@
                             {{ form.measurement_time.label(class="form-label fw-semibold") }}
                             {{ form.measurement_time(class="form-select form-select-lg") }}
                         </div>
-                        <div class="col-md-8">
+                        
+                        <div class="col-md-6">
                             {{ form.medication_name.label(class="form-label fw-semibold") }}
                             {{ form.medication_name(class="form-control", placeholder="مثال: Insulin") }}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             {{ form.medication_dose.label(class="form-label fw-semibold") }}
                             {{ form.medication_dose(class="form-control", placeholder="مثال: 5") }}
                         </div>
+                        <div class="col-md-3">
+                            {{ form.carbs.label(class="form-label fw-semibold") }}
+                            {{ form.carbs(class="form-control", placeholder="مثال: 45") }}
+                        </div>
+
                         <div class="col-12">
                             {{ form.note.label(class="form-label fw-semibold") }}
                             {{ form.note(class="form-control", rows="3", placeholder="أي ملاحظات إضافية...") }}

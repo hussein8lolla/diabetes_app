@@ -43,6 +43,7 @@ class Reading(db.Model):
     measurement_time = db.Column(db.String(50))
     medication_name = db.Column(db.String(100))
     medication_dose = db.Column(db.Float, default=0.0)
+    carbs = db.Column(db.Integer, default=0)  # ✅ تمت الإضافة هنا
     note = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

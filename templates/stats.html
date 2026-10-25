@@ -4,6 +4,50 @@
 {% block content %}
 <h2 class="fw-bold mb-4">📈 الإحصائيات التفصيلية</h2>
 
+<!-- قسم السكر التراكمي والوقت في النطاق -->
+<div class="row g-3 mb-4">
+    <!-- eA1c -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <h6 class="text-muted fw-bold mb-3">تقدير السكر التراكمي (eA1c)</h6>
+                <div class="display-4 fw-bold text-{{ a1c_status }} mb-2">
+                    {{ ea1c }}%
+                </div>
+                <span class="badge bg-{{ a1c_status }} fs-6">{{ a1c_text }}</span>
+                <p class="text-muted small mt-3 mb-0">تقدير بناءً على متوسط آخر 30 يوم (ليس بديلاً عن التحليل المعملي)</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TIR -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted fw-bold mb-3">الوقت في النطاق الآمن (TIR) - آخر 30 يوم</h6>
+                {% if total_readings > 0 %}
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-success fw-bold">في النطاق ({{ tir_percentage }}%)</span>
+                    <span class="text-warning fw-bold">عالي ({{ high_percentage }}%)</span>
+                    <span class="text-danger fw-bold">واطي ({{ low_percentage }}%)</span>
+                </div>
+                <div class="progress" style="height: 25px; border-radius: 12px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ tir_percentage }}%" title="في النطاق"></div>
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ high_percentage }}%" title="عالي"></div>
+                    <div class="progress-bar bg-danger" role="progressbar" style="width: {{ low_percentage }}%" title="واطي"></div>
+                </div>
+                <div class="mt-3 text-center">
+                    <small class="text-muted">الهدف الطبي: أن تكون نسبة "في النطاق" أكثر من <b>70%</b></small>
+                </div>
+                {% else %}
+                <p class="text-muted text-center mt-4">لا توجد بيانات كافية لحساب TIR</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- المتوسطات العامة -->
 <div class="row g-3 mb-4">
     <div class="col-md-4">
         <div class="card border-0 shadow-sm h-100">
