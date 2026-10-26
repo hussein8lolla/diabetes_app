@@ -97,10 +97,12 @@ def stats():
     today_vals = get_vals(0)
     week_vals = get_vals(7)
     month_vals = get_vals(30)
+    three_months_vals = get_vals(90)  # ✅ تمت الإضافة (3 شهور للتراكمي)
 
     avg_today = round(statistics.mean(today_vals), 1) if today_vals else 0
     avg_week = round(statistics.mean(week_vals), 1) if week_vals else 0
     avg_month = round(statistics.mean(month_vals), 1) if month_vals else 0
+    avg_three_months = round(statistics.mean(three_months_vals), 1) if three_months_vals else 0  # ✅ جديد
     std_week = round(statistics.stdev(week_vals), 1) if len(week_vals) > 1 else 0
     std_month = round(statistics.stdev(month_vals), 1) if len(month_vals) > 1 else 0
 
@@ -114,11 +116,13 @@ def stats():
         tir_percentage = round((in_range / total_readings) * 100)
         high_percentage = round((high / total_readings) * 100)
         low_percentage = round((low / total_readings) * 100)
+    else:
+        tir_percentage = high_percentage = low_percentage = 0
 
-        # حساب eA1c: (المتوسط + 46.7) / 28.7
-        ea1c = round((avg_month + 46.7) / 28.7, 1)
+    # ✅ تعديل حساب eA1c ليعتمد على 90 يوم
+    if len(three_months_vals) > 0:
+        ea1c = round((avg_three_months + 46.7) / 28.7, 1)
 
-        # تحديد حالة eA1c
         if ea1c < 5.7:
             a1c_status = "success"
             a1c_text = "طبيعي"
@@ -129,15 +133,14 @@ def stats():
             a1c_status = "danger"
             a1c_text = "مرتفع"
     else:
-        tir_percentage = high_percentage = low_percentage = 0
         ea1c = 0
         a1c_status = "secondary"
-        a1c_text = "لا توجد قراءات كافية"
+        a1c_text = "لا توجد قراءات كافية (تحتاج 3 شهور)"
 
-    # إحصائيات وقت القياس
+    # إحصائيات وقت القياس (تم شيل بالليل)
     time_labels = [
         ('Morning', 'الصبح'), ('Noon', 'نص اليوم'), ('Afternoon', 'بعد الظهر'),
-        ('Evening', 'بالليل'), ('Night', 'بليل'),
+        ('Night', 'بليل'),  # ✅ "بالليل" اتشالت
         ('Before Breakfast', 'قبل الفطار'), ('After Breakfast (2h)', 'بعد الفطار بساعتين'),
         ('Before Lunch', 'قبل الغداء'), ('After Lunch (2h)', 'بعد الغداء بساعتين'),
         ('Before Dinner', 'قبل العشاء'), ('After Dinner (2h)', 'بعد العشاء بساعتين'),
